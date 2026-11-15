@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Packaging and tool caches
+*.egg-info/
+build/
+dist/
+.eggs/
+.ruff_cache/
+.pytest_cache/
+
+# Local only: site-specific scan patterns, partial scripts that are not published (see
+# archive/README.md), and code held back until the preprint (see unpublished/README.md)
+.identifiers-local
+archive/
+unpublished/
+
+# What `python tests/fixtures.py` writes when run from the repository root. The tables
+# are synthetic, but env.sh records absolute local paths.
+synthetic_cohort/
+env.sh
+
+# Never commit data, labels, or anything derived from patient records
+*.csv
+*.tsv
+*.xlsx
+*.nii
+*.nii.gz
+*.dcm
+clinical_data/
+preprocessed/
+
+# Model weights, caches, logs, run outputs
+*.pth
+*.pt
+*.npy
+*.npz
+persistent_cache*/
+image_only_models*/
+radiomic_clinical_mlp/
+runs/
+events.out.tfevents.*
+*.log
+fold_*.log
+sjob_*.out*
+
+# Generated manuscript artifacts
+*.docx
+Figure*.pdf
+Figure*.png
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/

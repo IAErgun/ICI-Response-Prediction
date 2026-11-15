@@ -1,0 +1,66 @@
+[build-system]
+requires = ["setuptools>=77"]          # for the SPDX `license` field below
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "brainmets-ici-response"
+version = "1.0.0"
+description = "Predicting immune-checkpoint-inhibitor response in brain metastases from MRI"
+readme = "README.md"
+requires-python = ">=3.10"
+# MIT for this project's own code; src/brainmets/training/crop.py is adapted from MONAI
+# and stays under Apache-2.0 (notice in that file).
+license = "MIT AND Apache-2.0"
+license-files = ["LICENSE", "LICENSES/Apache-2.0.txt"]
+keywords = ["medical-imaging", "radiology", "mri", "brain-metastases",
+            "immunotherapy", "deep-learning", "monai"]
+
+# Pinned loosely: these are the major versions the published runs used. The CUDA torch
+# build should come from pytorch.org, not from here.
+dependencies = [
+    "numpy>=1.24",
+    "pandas>=2.0",
+    "scipy>=1.10",
+    "scikit-learn>=1.3",
+    "torch>=2.1",
+    "monai>=1.3",
+    "nibabel>=5.0",
+    "tensorboard>=2.14",
+    "tqdm>=4.65",
+    "matplotlib>=3.7",
+]
+
+[project.optional-dependencies]
+dev = ["ruff==0.17.4"]                   # the version CI pins
+
+[project.urls]
+Repository = "https://github.com/IAErgun/ICI-Response-Prediction"
+
+[project.scripts]
+brainmets = "brainmets.__main__:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+# Pinned explicitly rather than left to ruff's default, which has widened between
+# releases: these are the correctness rules (syntax, undefined names, unused code).
+select = ["E4", "E7", "E9", "F"]
+# E501 long lines are left to the formatter; E712 (== True) is deliberate in the
+# pandas filters, where `is True` does not vectorise.
+ignore = ["E501", "E712"]
+
+[tool.ruff.lint.per-file-ignores]
+# Extracted verbatim from the scripts that produced the published results, and kept
+# parsing to exactly the same tree so that claim stays checkable. Their findings are
+# cosmetic (empty f-strings, unused accumulators, `== None`) and are left alone rather
+# than editing the code of record.
+"src/brainmets/training/data.py" = ["E711"]
+"src/brainmets/training/engine.py" = ["F541", "F841"]

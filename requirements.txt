@@ -1,0 +1,7 @@
+# The dependency list lives in pyproject.toml, so it is declared exactly once.
+# This file exists only so that `pip install -r requirements.txt` works for anyone who
+# reaches for it by reflex; it installs the package and its dependencies.
+#
+# GPU training needs a CUDA-enabled PyTorch build matching your driver. Install that
+# from pytorch.org FIRST, then run this — otherwise pip resolves a CPU-only torch.
+-e .

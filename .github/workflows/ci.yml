@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      # torch, monai and tensorboard are multi-gigabyte, and the tests that need them
+      # skip themselves when they are absent. So the package is installed without its
+      # dependencies and only what the data-free suite uses is added, which keeps this
+      # job under a minute. scikit-learn is needed by cohort.make_folds and the
+      # evaluation metrics; matplotlib by plot_diagnostics. The full-stack job below
+      # runs what this one skips.
+      - name: Install (without the deep-learning stack)
+        run: |
+          python -m pip install --upgrade pip
+          pip install --no-deps -e .
+          pip install numpy pandas scikit-learn matplotlib ruff==0.17.4
+
+      - name: Lint
+        run: ruff check src tests
+
+      - name: Tests
+        run: python -m unittest discover -s tests -v
+
+      # The repository must stay free of patient data and site-specific paths. The same
+      # script runs locally as the pre-commit hook (.githooks/pre-commit), which is what
+      # stops a leak before it is public; this is the backstop.
+      - name: No identifying details
+        run: bash scripts/check_identifiers.sh
+
+  # Everything installed, so nothing skips: the CNN forward/backward tests run, and
+  # tests/test_imports.py loads the trainer, the data pipeline and the prediction
+  # exporters, which the fast job never imports. CPU-only PyTorch is enough for that and
+  # far smaller than the default CUDA build.
+  full-stack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install (all dependencies, CPU-only PyTorch)
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -e .
+
+      - name: Tests (nothing skipped)
+        run: python -m unittest discover -s tests -v
